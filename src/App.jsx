@@ -90,7 +90,7 @@ function App() {
             {langOptions}
           </select>
           <div className="flex">
-            <label htmlFor="difficulty">Difficulty</label>
+            <label htmlFor="difficulty">Difficulty:</label>
             <input
               type="range"
               id="difficulty"
@@ -98,10 +98,10 @@ function App() {
               min="5"
               step="5"
               max="25"
-              defaultValue="10"
-              value={cardCount}
+              value={"" + cardCount}
               onChange={(e) => {
-                setCardCount(e.target.value);
+                setCardCount(parseInt(e.target.value));
+                setShowResults(true);
               }}
             />
           </div>
@@ -117,7 +117,7 @@ function App() {
         <Result
           score={score}
           best={best}
-          onClick={startGame}
+          onClick={() => startGame(cardCount, pool)}
           show={showResults}
         />
       </main>

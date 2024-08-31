@@ -44,7 +44,8 @@
 }
 
 .options {
-  gap: 3rem;
+  gap: 4rem;
+  margin-bottom: 1rem;
   justify-content: center;
   select,
   input {
@@ -70,9 +71,8 @@ ul {
   list-style-type: none;
 }
 
-.current,
-.best {
-  margin: 1rem;
+.current {
+  margin-right: 1rem;
 }
 
 /* The flip card container - Code from GeeksForGeeks*/
