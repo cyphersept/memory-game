@@ -2,9 +2,15 @@
   box-sizing: border-box;
 }
 
+.flex {
+  display: flex;
+}
+
 #root {
-  max-width: 1280px;
-  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  width: 100%;
   padding: 2rem;
   text-align: center;
 }
@@ -37,15 +43,27 @@
   }
 }
 
-.flex {
-  display: flex;
+.options {
+  gap: 3rem;
+  justify-content: center;
+  select,
+  input {
+    width: 8rem;
+  }
+  input {
+    margin-left: 1rem;
+    accent-color: deeppink;
+  }
 }
 
 .gameboard {
-  display: grid;
-  grid-auto-columns: auto;
-  grid-auto-rows: auto;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: center;
   gap: 1rem;
+  font-size: small;
 }
 
 ul {
@@ -57,14 +75,13 @@ ul {
   margin: 1rem;
 }
 
-/* The flip card container - set the width and height to whatever you want. We have added the border property to demonstrate that the flip itself goes out of the box on hover (remove perspective if you don't want the 3D effect */
+/* The flip card container - Code from GeeksForGeeks*/
 .card {
   background-color: transparent;
-  width: 300px;
-  height: 200px;
-  border: 1px solid #f1f1f1;
-  font-size: 2rem;
-  perspective: 1000px; /* Remove this if you don't want the 3D effect */
+  width: 15em;
+  height: 10em;
+  /* border: 1px solid #f1f1f1; */
+  perspective: 1000px; /* 3D effect */
 }
 
 /* This container is needed to position the front and back side */
@@ -73,7 +90,7 @@ ul {
   width: 100%;
   height: 100%;
   text-align: center;
-  transition: transform 0.8s;
+  transition: transform 0.5s;
   transform-style: preserve-3d;
 }
 
@@ -81,9 +98,10 @@ ul {
   width: 100%;
   height: 100%;
   object-fit: cover;
+  border: 4px solid black;
 }
 
-/* Do an horizontal when you move the mouse over the box container */
+/* Horizontal flip when you move the mouse over the box container */
 .card:hover .inner {
   transform: rotateY(180deg);
 }
@@ -100,13 +118,49 @@ ul {
 
 /* Style the front side (fallback if image is missing) */
 .card .front {
-  background-color: #bbb;
+  background-color: #000;
   color: black;
 }
 
 /* Style the back side */
 .card .back {
-  background-color: dodgerblue;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background-color: deeppink;
   padding: 1rem;
+  font-size: 1.5em;
+  font-weight: bold;
   transform: rotateY(180deg);
+}
+
+/* Modal logic */
+main {
+  position: relative;
+
+  .cover {
+    position: absolute;
+    left: 0;
+    top: 0;
+    height: 100%;
+    width: 100%;
+    overflow: hidden;
+    background-color: #242424;
+    opacity: 0.75;
+  }
+
+  .modal {
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 0;
+    bottom: 0;
+    margin: auto;
+    background-color: #213547;
+    width: max-content;
+    height: min-content;
+    padding: 1rem 2rem;
+    border-radius: 8px;
+    box-shadow: 0px 8px 16px rgba(0, 0, 0, 0.7);
+  }
 }

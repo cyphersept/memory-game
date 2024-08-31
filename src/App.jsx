@@ -1,37 +1,126 @@
 import { useEffect, useState } from "react";
+import * as Logic from "./Logic.js";
+import { languages } from "./languages.js";
+
 import reactLogo from "./assets/react.svg";
 import viteLogo from "/vite.svg";
 import "./App.css";
 
 function App() {
-  const [score, setScore] = useState(0);
-  const [best, setBest] = useState(0);
-  const [boardState, setBoardState] = useState(["ae", "ad"]);
-  const [lang, setLang] = useState("en");
-  const [names, setNames] = useState({});
+  const [score, setScore] = useState(0); // Current score
+  const [best, setBest] = useState(0); // Best score
+  const [boardState, setBoardState] = useState(["ae", "ad"]); // Card layout on board
+  const [lang, setLang] = useState("en"); // Language for country names
+  const [names, setNames] = useState("unset"); // {country_code: "Country Name"}
+  const [pool, setPool] = useState("unset"); //  Set of country codes
+  const [cardCount, setCardCount] = useState(10); //  Number of cards in play
+  const [showResults, setShowResults] = useState(false); // Toggles visibility of <<Results>
 
-  const fetchData = () => {
-    fetch("https://flagcdn.com/" + lang + "/codes.json")
+  // Initializes game according to API data
+  const fetchData = (reset = false, code = lang) => {
+    fetch("https://flagcdn.com/" + code + "/codes.json")
       .then((response) => {
         return response.json();
       })
       .then((data) => {
         console.log(data);
         setNames(data);
+        if (reset === true) {
+          let poolSet = new Set(Object.keys(data));
+          setPool(poolSet);
+          startGame(cardCount, poolSet);
+        }
       });
   };
 
-  const handleClick = () => {};
+  // Starts a new game with a different card cardCount and pool
+  const startGame = (cardCount, pool) => {
+    setShowResults(false);
+    if (score > best) setBest(score);
+    setScore(0);
+    Logic.clear();
+    setBoardState(Logic.setCards(cardCount, pool));
+  };
 
-  useEffect(() => fetchData, []);
+  // Pairs with event delegator to overcome bubbling issues
+  const findCardAncestor = (element, target) => {
+    let current = element;
+    while (current) {
+      if (current.classList.contains(target)) return current;
+      current = current.parentElement;
+    }
+    return null; // If it is not a card
+  };
+
+  // Event delegator - What happens when a card is clicked
+  const handleClick = (event) => {
+    const card = findCardAncestor(event.target, "card");
+    const success = Logic.pick(card.dataset.code);
+    if (success) {
+      setScore(score + 1);
+      setBoardState(Logic.setCards(cardCount, pool));
+    } else {
+      setShowResults(true);
+    }
+  };
+
+  // Lists options for language selector
+  const langOptions = Object.keys(languages).map((key) => (
+    <option key={key.toLocaleLowerCase()} value={key.toLocaleLowerCase()}>
+      {languages[key]}
+    </option>
+  ));
+
+  useEffect(() => fetchData(true), []);
 
   return (
     <>
       <header>
-        <h1>Flag Memory Game</h1>
-        <Score score={score} best={best} />
+        <h1>🌎 Flag Memory Game 🌍</h1>
+        <div className="flex options">
+          <select
+            name="language"
+            id="language"
+            value={lang}
+            onChange={(e) => {
+              setLang(e.target.value);
+              fetchData(null, e.target.value);
+            }}
+          >
+            {langOptions}
+          </select>
+          <div className="flex">
+            <label htmlFor="difficulty">Difficulty</label>
+            <input
+              type="range"
+              id="difficulty"
+              name="difficulty"
+              min="5"
+              step="5"
+              max="25"
+              defaultValue="10"
+              value={cardCount}
+              onChange={(e) => {
+                setCardCount(e.target.value);
+              }}
+            />
+          </div>
+          <Score score={score} best={best} />
+        </div>
       </header>
-      <Gameboard names={names} boardState={boardState} />
+      <main>
+        <Gameboard
+          names={names}
+          boardState={boardState}
+          onClick={handleClick}
+        />
+        <Result
+          score={score}
+          best={best}
+          onClick={startGame}
+          show={showResults}
+        />
+      </main>
     </>
   );
 }
@@ -44,23 +133,24 @@ function Score({ score, best }) {
     </div>
   );
 }
-function Gameboard({ boardState, names }) {
+function Gameboard({ boardState, names, onClick }) {
   const listCards = boardState.map((country, index) => (
     <Card
       key={index}
       flag={"https://flagcdn.com/" + country + ".svg"}
       name={names[country]}
+      code={country}
     />
   ));
   return (
-    <main>
-      <ul className="gameboard">{listCards}</ul>
-    </main>
+    <ul className="gameboard" onClickCapture={onClick}>
+      {listCards}
+    </ul>
   );
 }
-function Card({ flag, name }) {
+function Card({ code, flag, name }) {
   return (
-    <li className="card">
+    <li className="card" data-code={code}>
       <div className="inner">
         <div className="flex front">
           <img src={flag} />
@@ -72,56 +162,28 @@ function Card({ flag, name }) {
     </li>
   );
 }
-function Result({ score, best, onClick }) {
+function Result({ score, best, onClick, show }) {
   const result = score > best ? "newBest" : score == best ? "tie" : "noChange";
 
+  if (!show) return <></>;
   return (
-    <div className={"modal " + result}>
-      <h1>Results</h1>
-      <Score score={score} best={best} />
-      <h2>
-        {result == "newBest" && "Congratulations! It's a new high score! "}
-        {result == "tie" && "Wow! You matched your personal best! "}
-        {result == "noChange" && "Good game! "}
-        Play again?
-      </h2>
-      <button title="Play again">↻</button>
-    </div>
+    <>
+      <div className="cover"></div>
+      <div className={"modal " + result}>
+        <h2>Results</h2>
+        <Score score={score} best={best} />
+        <h3>
+          {result == "newBest" && "Congratulations! It's a new high score! "}
+          {result == "tie" && "Wow! You matched your personal best! "}
+          {result == "noChange" && "Good game! "}
+          Play again?
+        </h3>
+        <button title="Play again" onClick={onClick}>
+          ↻
+        </button>
+      </div>
+    </>
   );
-}
-
-function Logic() {
-  const picked = new Set();
-  const alreadyPicked = (val) => picked.has(val);
-  const allArePicked = (arr) => arr.every(alreadyPicked);
-
-  // Marks a value as picked
-  const pick = (val) => picked.add(val);
-
-  // Returns a random element from the set
-  const randomElement = (set) => [...set][Math.floor(Math.random() * set.size)];
-
-  // Give each card a random value
-  const setCards = (size, pool) => {
-    const arr = Array(size);
-    for (let index = 0; index < arr.length; index++) {
-      arr[index] = randomElement(pool);
-    }
-    // If the board contains no new cards, introduce some
-    while (allArePicked(arr)) {
-      const ratio = picked.size / pool.size;
-      const unpickedSet = pool.difference(picked);
-      arr.forEach(() => {
-        if (Math.random > ratio) randomElement(unpickedSet);
-      });
-    }
-    return arr;
-  };
-
-  // Clears all picked cards
-  const clear = () => picked.clear;
-
-  return { setCards, pick, clear };
 }
 
 export default App;
