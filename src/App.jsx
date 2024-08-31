@@ -1,9 +1,6 @@
 import { useEffect, useState } from "react";
 import * as Logic from "./Logic.js";
 import { languages } from "./languages.js";
-
-import reactLogo from "./assets/react.svg";
-import viteLogo from "/vite.svg";
 import "./App.css";
 
 function App() {
@@ -121,6 +118,18 @@ function App() {
           show={showResults}
         />
       </main>
+      <footer>
+        <div className="div">
+          Source code at:
+          <a
+            href="http://github.com/cyphersept/memory-game"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            cyphersept
+          </a>
+        </div>
+      </footer>
     </>
   );
 }
@@ -176,10 +185,9 @@ function Result({ score, best, onClick, show }) {
           {result == "newBest" && "Congratulations! It's a new high score! "}
           {result == "tie" && "Wow! You matched your personal best! "}
           {result == "noChange" && "Good game! "}
-          Play again?
         </h3>
         <button title="Play again" onClick={onClick}>
-          ↻
+          <b>↻</b> Play again
         </button>
       </div>
     </>
